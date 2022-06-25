@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane id="AnchorPane" prefHeight="686.0" prefWidth="1063.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.UpdateCustomerController">
+   <children>
+      <Pane layoutX="14.0" layoutY="31.0" prefHeight="686.0" prefWidth="1063.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <TableView fx:id="customerTableView" layoutX="299.0" layoutY="60.0" prefHeight="496.0" prefWidth="742.0">
+               <columns>
+                  <TableColumn fx:id="customerIDColumn" prefWidth="78.666748046875" text="Customer_ID" />
+                  <TableColumn fx:id="customerNameColumn" prefWidth="105.33340454101562" text="Customer_Name" />
+                  <TableColumn fx:id="customerAddressColumn" prefWidth="187.99996948242188" text="Address" />
+                  <TableColumn fx:id="customerPostalCodeColumn" prefWidth="91.333251953125" text="Postal_Code" />
+                  <TableColumn fx:id="customerPhoneColumn" prefWidth="89.3333740234375" text="Phone" />
+                  <TableColumn fx:id="customerFirstLevelDivisionColumn" prefWidth="186.66668701171875" text="First-Level Division" />
+               </columns>
+            </TableView>
+            <TextField fx:id="customerIDTextField" editable="false" layoutX="131.0" layoutY="63.0" promptText="Auto-Generated ID" />
+            <TextField fx:id="customerNameTextField" layoutX="131.0" layoutY="135.0" promptText="Name" />
+            <TextField fx:id="customerAddressTextField" layoutX="131.0" layoutY="218.0" promptText="Address" />
+            <TextField fx:id="customerPostalCodeTextField" layoutX="131.0" layoutY="288.0" promptText="Postal Code" />
+            <TextField fx:id="customerPhoneNumberTextField" layoutX="131.0" layoutY="362.0" promptText="Phone Number" />
+            <Label layoutX="13.0" layoutY="67.0" text="Customer_ID" />
+            <Label layoutX="15.0" layoutY="139.0" text="Name" />
+            <Label layoutX="10.0" layoutY="222.0" text=" Address" />
+            <Label layoutX="10.0" layoutY="292.0" text="Postal Code" />
+            <Label layoutX="12.0" layoutY="366.0" text="Phone Number" />
+            <Button fx:id="deleteCustomer" layoutX="989.0" layoutY="579.0" mnemonicParsing="false" onAction="#onActionDeleteCustomer" text="Delete">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button fx:id="newCustomerButton" layoutX="299.0" layoutY="579.0" mnemonicParsing="false" onAction="#onActionNewCustomer" text="New Customer">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button fx:id="saveCustomer" layoutX="662.0" layoutY="579.0" mnemonicParsing="false" onAction="#onActionSaveCustomer" text="Save Update">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <TextField fx:id="customerSearch" layoutX="891.0" layoutY="21.0" onAction="#onActionCustomerSearch" promptText="Search Customer ID#">
+               <cursor>
+                  <Cursor fx:constant="TEXT" />
+               </cursor></TextField>
+            <Label fx:id="customerSearchError" layoutX="605.0" layoutY="21.0" />
+            <Button fx:id="customerClearForm" layoutX="10.0" layoutY="579.0" mnemonicParsing="false" onAction="#onActionClearForm" text="Clear Form">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <ComboBox fx:id="customerCountryCombo" layoutX="131.0" layoutY="419.0" onAction="#onActionCountryCombo" prefWidth="150.0" promptText="Country">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></ComboBox>
+            <ComboBox fx:id="customerStateCombo" layoutX="131.0" layoutY="483.0" prefWidth="150.0" promptText="State/Province">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></ComboBox>
+            <Label layoutX="10.0" layoutY="423.0" text=" Country" />
+            <Label layoutX="14.0" layoutY="487.0" text="State/Province" />
+            <Button fx:id="modifyCustomer" layoutX="532.0" layoutY="579.0" mnemonicParsing="false" onAction="#onActionModifyCustomer" text="Update Customer">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Label fx:id="customerButtonError" layoutX="297.0" layoutY="636.0" />
+            <Button fx:id="backToHub" layoutX="299.0" layoutY="17.0" mnemonicParsing="false" onAction="#onActionBackToHub" text="Back To Hub">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </Button>
+            <Label text="Customer View">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+         </children>
+      </Pane>
+   </children>
+</AnchorPane>
