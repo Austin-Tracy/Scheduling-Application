@@ -30,34 +30,34 @@ public class CustomerQuery {
      * @throws SQLException When the Query is Invalid
      */
     public static ArrayList<Customer> getCustomers() throws SQLException {
-        ArrayList<Customer> customers = null;
-        try {
-            customers = new ArrayList<>();
-            String sql = "SELECT * FROM customers";
-            Statement st = JDBC.connection.createStatement();
-            Statement st2 = JDBC.connection.createStatement();
-            Statement st3 = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery(sql);
+        ArrayList<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM customers";
+        String sql2 = "SELECT * FROM first_level_divisions WHERE Division_ID=?";
+        String sql3 = "SELECT Country from countries WHERE Country_ID=?";
+        try (PreparedStatement st = JDBC.connection.prepareStatement(sql);
+             PreparedStatement st2 = JDBC.connection.prepareStatement(sql2);
+             PreparedStatement st3 = JDBC.connection.prepareStatement(sql3)) {
+            ResultSet rs = st.executeQuery();
             while (rs.next()) {
                 Customer cust = new Customer();
-                cust.setCustomerId(Integer.parseInt(rs.getString("Customer_ID")));
+                cust.setCustomerId(rs.getInt("Customer_ID"));
                 cust.setCustomerName(rs.getString("Customer_Name"));
                 cust.setCustomerAddress(rs.getString("Address"));
                 cust.setCustomerPostalCode(rs.getString("Postal_Code"));
                 cust.setCustomerPhone(rs.getString("Phone"));
                 cust.setCustomerDivision(rs.getString("Division_ID"));
-                //cust.setDivisionId(Integer.parseInt(rs.getString("Division_ID")));
-                ResultSet rs2 = st2.executeQuery("SELECT * FROM first_level_divisions WHERE Division_ID=" + rs.getInt("Division_ID"));
-                rs2.next();
-                cust.setCustomerDivision(rs2.getString("Division"));
-                ResultSet rs3 = st3.executeQuery("SELECT Country from countries WHERE Country_ID=" + rs2.getInt("Country_ID"));
-                rs3.next();
-                cust.setCustomerCountry(rs3.getString("Country"));
-                //cust.setCustomerCountry(rs.getString("Country"))
+                st2.setInt(1, rs.getInt("Division_ID"));
+                ResultSet rs2 = st2.executeQuery();
+                if (rs2.next()) {
+                    cust.setCustomerDivision(rs2.getString("Division"));
+                    st3.setInt(1, rs2.getInt("Country_ID"));
+                    ResultSet rs3 = st3.executeQuery();
+                    if (rs3.next()) {
+                        cust.setCustomerCountry(rs3.getString("Country"));
+                    }
+                }
                 customers.add(cust);
             }
-        } catch (SQLException e) {
-            return customers;
         }
         return customers;
     }
@@ -70,26 +70,24 @@ public class CustomerQuery {
      * @throws SQLException When the Query is Invalid
      */
     public static boolean insertCustomer(Customer cust) throws SQLException {
-        try {
-            Statement st = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM first_level_divisions"
-                    + " WHERE Division='" + cust.getCustomerDivision() + "'");
-            rs.next();
-            int divisionId = rs.getInt("Division_ID");
-            int success = st.executeUpdate("INSERT INTO customers(Customer_Name,"
-                    + " Address, Postal_Code, Phone, Division_ID)"
-                    + " VALUES('" + cust.getCustomerName() + "','"
-                    + cust.getCustomerAddress() + "','"
-                    + cust.getCustomerPostalCode() + "','"
-                    + cust.getCustomerPhone() + "','" + divisionId + "');");
-            if (success == 0) {
-                return false;
+        String sql1 = "SELECT * FROM first_level_divisions WHERE Division=?";
+        String sql2 = "INSERT INTO customers(Customer_Name, Address, Postal_Code, Phone, Division_ID) VALUES(?,?,?,?,?)";
+        try (PreparedStatement st1 = JDBC.connection.prepareStatement(sql1);
+             PreparedStatement st2 = JDBC.connection.prepareStatement(sql2)) {
+            st1.setString(1, cust.getCustomerDivision());
+            ResultSet rs = st1.executeQuery();
+            if (rs.next()) {
+                int divisionId = rs.getInt("Division_ID");
+                st2.setString(1, cust.getCustomerName());
+                st2.setString(2, cust.getCustomerAddress());
+                st2.setString(3, cust.getCustomerPostalCode());
+                st2.setString(4, cust.getCustomerPhone());
+                st2.setInt(5, divisionId);
+                int success = st2.executeUpdate();
+                return success > 0;
             }
-        } catch (SQLException e) {
-            return false;
         }
-        System.out.print("Insert Succeeded\n");
-        return true;
+        return false;
     }
 
     /**
@@ -101,28 +99,25 @@ public class CustomerQuery {
      * @throws SQLException When the Query is Invalid
      */
     public static boolean updateCustomer(Customer cust) throws SQLException {
-        try {
-            Statement st = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM first_level_divisions "
-                    + "WHERE Division='" + cust.getCustomerDivision() + "'");
-
-            rs.next();
-            int divisionId = rs.getInt("Division_ID");
-            String sql = "UPDATE customers SET Customer_Name='"
-                    + cust.getCustomerName() + "',Address='"
-                    + cust.getCustomerAddress() + "',Postal_Code='"
-                    + cust.getCustomerPostalCode() + "',Phone='"
-                    + cust.getCustomerPhone() + "',Division_ID="
-                    + divisionId + " WHERE Customer_ID=" + cust.getCustomerId();
-            int success = st.executeUpdate(sql);
-            if (success == 0) {
-                return false;
+        String sql1 = "SELECT * FROM first_level_divisions WHERE Division=?";
+        String sql2 = "UPDATE customers SET Customer_Name=?, Address=?, Postal_Code=?, Phone=?, Division_ID=? WHERE Customer_ID=?";
+        try (PreparedStatement st1 = JDBC.connection.prepareStatement(sql1);
+             PreparedStatement st2 = JDBC.connection.prepareStatement(sql2)) {
+            st1.setString(1, cust.getCustomerDivision());
+            ResultSet rs = st1.executeQuery();
+            if (rs.next()) {
+                int divisionId = rs.getInt("Division_ID");
+                st2.setString(1, cust.getCustomerName());
+                st2.setString(2, cust.getCustomerAddress());
+                st2.setString(3, cust.getCustomerPostalCode());
+                st2.setString(4, cust.getCustomerPhone());
+                st2.setInt(5, divisionId);
+                st2.setInt(6, cust.getCustomerId());
+                int success = st2.executeUpdate();
+                return success > 0;
             }
-        } catch (SQLException e) {
-            return false;
         }
-        System.out.print("Update Succeeded\n");
-        return true;
+        return false;
     }
 
     /**
@@ -135,17 +130,12 @@ public class CustomerQuery {
      * @throws SQLException When the Query is Invalid
      */
     public static boolean checkCustomer(Customer cust) throws SQLException {
-        try {
-            Statement st = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM appointments WHERE Customer_ID ='" + cust.getCustomerId());
-            if (rs.next()) {
-                int appointmentId = rs.getInt("Appointment_ID");
-                return true;
-            }
-        } catch (SQLException e) {
-            return false;
+        String sql = "SELECT * FROM appointments WHERE Customer_ID=?";
+        try (PreparedStatement st = JDBC.connection.prepareStatement(sql)) {
+            st.setInt(1, cust.getCustomerId());
+            ResultSet rs = st.executeQuery();
+            return rs.next();
         }
-        return false;
     }
 
     /**
@@ -156,17 +146,12 @@ public class CustomerQuery {
      * @throws SQLException When the Query is Invalid
      */
     public static boolean deleteCustomer(Customer cust) throws SQLException {
-        try {
-            Statement st = JDBC.connection.createStatement();
-            int returnedRecords = st.executeUpdate("DELETE FROM customers WHERE Customer_ID = " + cust.getCustomerId());
-            if (returnedRecords == 0) {
-                return false;
-            }
-        } catch (SQLException e) {
-            return false;
+        String sql = "DELETE FROM customers WHERE Customer_ID=?";
+        try (PreparedStatement st = JDBC.connection.prepareStatement(sql)) {
+            st.setInt(1, cust.getCustomerId());
+            int success = st.executeUpdate();
+            return success > 0;
         }
-        System.out.print("Deletetion Succeeded\n");
-        return true;
     }
 
     /**
@@ -177,26 +162,27 @@ public class CustomerQuery {
      * @throws SQLException When the Query is invalid
      */
     public static Customer lookupCustomer(int custId) throws SQLException {
-        try {
-            String sql = "SELECT * FROM customers WHERE Customer_ID = " + custId;
-            Statement st = JDBC.connection.createStatement();
-            Statement st2 = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery(sql);
-            while (rs.next()) {
+        String sql1 = "SELECT * FROM customers WHERE Customer_ID=?";
+        String sql2 = "SELECT * FROM first_level_divisions WHERE Division_ID=?";
+        try (PreparedStatement st1 = JDBC.connection.prepareStatement(sql1);
+             PreparedStatement st2 = JDBC.connection.prepareStatement(sql2)) {
+            st1.setInt(1, custId);
+            ResultSet rs = st1.executeQuery();
+            if (rs.next()) {
                 Customer cust = new Customer();
-                cust.setCustomerId(Integer.parseInt(rs.getString("Customer_ID")));
+                cust.setCustomerId(rs.getInt("Customer_ID"));
                 cust.setCustomerName(rs.getString("Customer_Name"));
                 cust.setCustomerAddress(rs.getString("Address"));
                 cust.setCustomerPostalCode(rs.getString("Postal_Code"));
                 cust.setCustomerPhone(rs.getString("Phone"));
                 cust.setCustomerDivision(rs.getString("Division_ID"));
-                ResultSet rs2 = st2.executeQuery("SELECT * FROM first_level_divisions WHERE Division_ID = " + rs.getInt("Division_ID"));
-                rs2.next();
-                cust.setCustomerDivision(rs2.getString("Division"));
+                st2.setInt(1, rs.getInt("Division_ID"));
+                ResultSet rs2 = st2.executeQuery();
+                if (rs2.next()) {
+                    cust.setCustomerDivision(rs2.getString("Division"));
+                }
                 return cust;
             }
-        } catch (SQLException e) {
-            return null;
         }
         return null;
     }

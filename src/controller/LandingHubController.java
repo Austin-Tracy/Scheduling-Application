@@ -101,8 +101,9 @@ public class LandingHubController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        ArrayList types;
-        ArrayList contacts;
+        ArrayList<String> types;
+        ArrayList<String> contacts;
+
         try {
             types = getAppointmentTypes();
             setPieTab(report3Tab);
@@ -135,7 +136,9 @@ public class LandingHubController implements Initializable {
      * @throws IOException When there is an Error reading the text file
      */
     public void setPieTab(Tab pieTab) throws IOException {
-        ArrayList aList = readLoginActivity(file);
+
+        ArrayList<String> aList = readLoginActivity(file);
+
         int totalAttempts = aList.size();
         int occurrences = Collections.frequency(aList, ("Failed"));
         for (int i = 0; i < aList.size(); i++) {
@@ -239,16 +242,17 @@ public class LandingHubController implements Initializable {
      * @return ArrayList of all Login Attempts delimeted by new lines
      * @throws IOException when there is an error with IO stream functionality
      */
-    public ArrayList readLoginActivity(File tempFile) throws IOException {
+    public ArrayList<String> readLoginActivity(File tempFile) throws IOException {
         int i;
         String tempText = "";
-        ArrayList logAttempts = new ArrayList();
-        FileReader fileReader = new FileReader(file);
+        ArrayList<String> logAttempts = new ArrayList<>();
+        FileReader fileReader = new FileReader(tempFile);
         while ((i = fileReader.read()) != -1) {
             tempText += (char) i;
         }
         String[] logList = tempText.split("\\r?\\n");
         logAttempts.addAll(Arrays.asList(logList));
+        fileReader.close();
         return logAttempts;
     }
 

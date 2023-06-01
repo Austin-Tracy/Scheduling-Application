@@ -21,11 +21,11 @@ public class CountryQuery {
      *
      * @return List of Country Strings
      */
-    public static ArrayList getCountries() {
-        ArrayList countryList = new ArrayList();
-        try {
-            Statement st = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT DISTINCT Country FROM countries");
+    public static ArrayList<String> getCountries() {
+        ArrayList<String> countryList = new ArrayList<>();
+        String sql = "SELECT DISTINCT Country FROM countries";
+        try (PreparedStatement st = JDBC.connection.prepareStatement(sql)) {
+            ResultSet rs = st.executeQuery();
             while (rs.next()) {
                 countryList.add(rs.getString("Country"));
             }

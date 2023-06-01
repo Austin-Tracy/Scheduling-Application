@@ -23,7 +23,7 @@ public class User {
      * @param password Password TEXT
      */
     public User(int userId, String userName, String password) {
-        this.userId = userId;
+        User.userId = userId;
         this.userName = userName;
         this.password = password;
     }
@@ -32,9 +32,6 @@ public class User {
      * Empty Class Constructor for User
      */
     public User() {
-        this.userId = userId;
-        this.userName = userName;
-        this.password = password;
     }
 
     /**
@@ -42,8 +39,8 @@ public class User {
      *
      * @return User User_ID
      */
-    public static int getUserId() {
-        return userId;
+    public int getUserId() {
+        return User.userId;
     }
 
     /**
@@ -52,7 +49,7 @@ public class User {
      * @param userId The Value to Set
      */
     public void setUserId(int userId) {
-        this.userId = userId;
+        User.userId = userId;
     }
 
     /**

@@ -35,10 +35,10 @@ public class FirstLevelDivision {
      * Empty Class Constructor for FirseLevelDivision
      */
     public FirstLevelDivision() {
-        this.divisionId = divisionId;
-        this.division = division;
-        this.countryId = countryId;
-        this.countryName = countryName;
+        this.divisionId = 0;
+        this.division = "";
+        this.countryId = 0;
+        this.countryName = "";
     }
 
     /**

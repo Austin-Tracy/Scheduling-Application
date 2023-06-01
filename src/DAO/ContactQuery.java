@@ -21,11 +21,11 @@ public class ContactQuery {
      *
      * @return An ArrayList of Contact Names
      */
-    public static ArrayList getContactNames() {
-        ArrayList contactList = new ArrayList();
-        try {
-            Statement st = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT DISTINCT Contact_Name FROM contacts");
+    public static ArrayList<String> getContactNames() {
+        ArrayList<String> contactList = new ArrayList<>();
+        String sql = "SELECT DISTINCT Contact_Name FROM contacts";
+        try (PreparedStatement st = JDBC.connection.prepareStatement(sql)) {
+            ResultSet rs = st.executeQuery();
             while (rs.next()) {
                 contactList.add(rs.getString("Contact_Name"));
             }

@@ -32,25 +32,27 @@ public class AppointmentQuery {
      * @throws SQLException When Querying Database
      */
     public static boolean insertAppointment(Appointment app) throws SQLException {
-        try {
-            Statement st = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM contacts WHERE Contact_Name='"
-                    + app.getContactName() + "'");
+        String contactQuery = "SELECT * FROM contacts WHERE Contact_Name=?";
+        String insertQuery = "INSERT INTO appointments(Title, Description, Location, Type, Start, End, Customer_ID, User_ID, Contact_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement pstContact = JDBC.connection.prepareStatement(contactQuery);
+                PreparedStatement pstInsert = JDBC.connection.prepareStatement(insertQuery)) {
+            pstContact.setString(1, app.getContactName());
+            ResultSet rs = pstContact.executeQuery();
             rs.next();
             int contactId = rs.getInt("Contact_ID");
-            int success = st.executeUpdate("INSERT INTO appointments(Title, Description,"
-                    + " Location, Type, Start, End, Customer_ID, User_ID, Contact_ID) "
-                    + "VALUES ('" + app.getTitle() + "', '" + app.getDescription() + "', '"
-                    + app.getLocation() + "', '" + app.getType() + "', '"
-                    + app.getStart() + "', '" + app.getEnd() + "', " + app.getCustomerId()
-                    + ", " + app.getUserId() + ", " + contactId + ");");
-            if (success == 0) {
-                return false;
-            }
-        } catch (SQLException e) {
-            return false;
+
+            pstInsert.setString(1, app.getTitle());
+            pstInsert.setString(2, app.getDescription());
+            pstInsert.setString(3, app.getLocation());
+            pstInsert.setString(4, app.getType());
+            pstInsert.setString(5, app.getStart());
+            pstInsert.setString(6, app.getEnd());
+            pstInsert.setInt(7, app.getCustomerId());
+            pstInsert.setInt(8, app.getUserId());
+            pstInsert.setInt(9, contactId);
+            int success = pstInsert.executeUpdate();
+            return success != 0;
         }
-        return true;
     }
 
     /**
@@ -62,31 +64,28 @@ public class AppointmentQuery {
      * @throws SQLException When Querying Database
      */
     public static boolean updateAppointment(Appointment app) throws SQLException {
-        try {
-            Statement st = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM contacts WHERE Contact_Name='"
-                    + app.getContactName() + "'");
+        String contactQuery = "SELECT * FROM contacts WHERE Contact_Name=?";
+        String updateQuery = "UPDATE appointments SET Title = ?, Description = ?, Location = ?, Type = ?, Start = ?, End = ?, Customer_ID = ?, User_ID = ?, Contact_ID = ? WHERE Appointment_ID = ?";
+        try (PreparedStatement pstContact = JDBC.connection.prepareStatement(contactQuery);
+                PreparedStatement pstUpdate = JDBC.connection.prepareStatement(updateQuery)) {
+            pstContact.setString(1, app.getContactName());
+            ResultSet rs = pstContact.executeQuery();
             rs.next();
             int contactId = rs.getInt("Contact_ID");
-            String sql = "UPDATE appointments SET Title = '" + app.getTitle()
-                    + "', Description = '" + app.getDescription()
-                    + "', Location = '" + app.getLocation()
-                    + "', Type = '" + app.getType()
-                    + "', Start = '" + app.getStart()
-                    + "', End = '" + app.getEnd()
-                    + "', Customer_ID = " + app.getCustomerId()
-                    + ", User_ID = " + app.getUserId()
-                    + ", Contact_ID = " + contactId
-                    + " WHERE Appointment_ID = " + app.getAppointmentId();
-            int success = st.executeUpdate(sql);
-            if (success == 0) {
-                return false;
-            }
-        } catch (SQLException e) {
-            return false;
+
+            pstUpdate.setString(1, app.getTitle());
+            pstUpdate.setString(2, app.getDescription());
+            pstUpdate.setString(3, app.getLocation());
+            pstUpdate.setString(4, app.getType());
+            pstUpdate.setString(5, app.getStart());
+            pstUpdate.setString(6, app.getEnd());
+            pstUpdate.setInt(7, app.getCustomerId());
+            pstUpdate.setInt(8, app.getUserId());
+            pstUpdate.setInt(9, contactId);
+            pstUpdate.setInt(10, app.getAppointmentId());
+            int success = pstUpdate.executeUpdate();
+            return success != 0;
         }
-        System.out.print("Update Succeeded\n");
-        return true;
     }
 
     /**
@@ -115,7 +114,8 @@ public class AppointmentQuery {
                 app.setEnd(DateTimeParser.toLocal(rs.getString("End")));
                 app.setCustomerId(rs.getInt("Customer_ID"));
                 app.setUserId(rs.getInt("User_ID"));
-                ResultSet rs2 = st2.executeQuery("SELECT Contact_Name from contacts WHERE Contact_ID=" + rs.getInt("Contact_ID"));
+                ResultSet rs2 = st2
+                        .executeQuery("SELECT Contact_Name from contacts WHERE Contact_ID=" + rs.getInt("Contact_ID"));
                 rs2.next();
                 app.setContactName(rs2.getString("Contact_Name"));
                 appointments.add(app);
@@ -134,17 +134,12 @@ public class AppointmentQuery {
      * @throws SQLException When Querying Database
      */
     public static boolean deleteAppointment(Appointment app) throws SQLException {
-        try {
-            Statement st = JDBC.connection.createStatement();
-            int returnedRecords = st.executeUpdate("DELETE FROM appointments WHERE Appointment_ID = " + app.getAppointmentId());
-            if (returnedRecords == 0) {
-                return false;
-            }
-        } catch (SQLException e) {
-            return false;
+        String deleteQuery = "DELETE FROM appointments WHERE Appointment_ID = ?";
+        try (PreparedStatement pstDelete = JDBC.connection.prepareStatement(deleteQuery)) {
+            pstDelete.setInt(1, app.getAppointmentId());
+            int returnedRecords = pstDelete.executeUpdate();
+            return returnedRecords != 0;
         }
-        System.out.print("Appointment Deleted\n");
-        return true;
     }
 
     /**
@@ -152,19 +147,22 @@ public class AppointmentQuery {
      * an appointment
      *
      * @param startTime Appointment Start Time to compare for Overlapping Time
-     * slots
-     * @param endTime Appointment Start Time to compare for Overlapping Time
-     * slots
+     *                  slots
+     * @param endTime   Appointment Start Time to compare for Overlapping Time
+     *                  slots
      * @return Int for matching Appointment ID
-     * @throws SQLException When Querying Database
+     * @throws SQLException   When Querying Database
      * @throws ParseException When Parsing DateTime
      */
-    public static ArrayList<Appointment> overLapping(String startTime, String endTime, int customerID) throws SQLException, ParseException {
+    public static ArrayList<Appointment> overLapping(String startTime, String endTime, int customerID)
+            throws SQLException, ParseException {
         ArrayList<Appointment> appointments = null;
         try {
             appointments = new ArrayList<>();
             Statement st = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT Appointment_ID, Start, End , Customer_ID from appointments Where Customer_ID = " + customerID);
+            ResultSet rs = st.executeQuery(
+                    "SELECT Appointment_ID, Start, End , Customer_ID from appointments Where Customer_ID = "
+                            + customerID);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
             Calendar calendar1 = Calendar.getInstance();
             calendar1.setTime(sdf.parse(startTime));
@@ -197,7 +195,8 @@ public class AppointmentQuery {
      * @return @throws SQLException When Querying Database
      * @throws ParseException When Parsing DateTime
      */
-    public static Appointment upcomingAppointments() throws SQLException, ParseException {
+    public static ArrayList<Appointment> upcomingAppointments() throws SQLException, ParseException {
+        ArrayList<Appointment> appointments = new ArrayList<>();
         try {
             Statement st = JDBC.connection.createStatement();
             ResultSet rs = st.executeQuery("Select * From appointments");
@@ -205,24 +204,23 @@ public class AppointmentQuery {
                 Calendar startTime = Calendar.getInstance();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
                 Calendar endTime = Calendar.getInstance();
-                endTime.setTime(sdf.parse(DateTimeParser.toLocal(rs.getString("Start")).replace("T", " ").substring(0, 16) + ":00"));
+                endTime.setTime(sdf.parse(
+                        DateTimeParser.toLocal(rs.getString("Start")).replace("T", " ").substring(0, 16) + ":00"));
                 Calendar newStartTime = Calendar.getInstance();
                 newStartTime.add(Calendar.MINUTE, 15);
                 if (newStartTime.after(endTime) && startTime.before(endTime)) {
                     Appointment app = new Appointment();
                     app.setAppointmentId(rs.getInt("Appointment_ID"));
-                    System.out.print(rs.getString("Start") + "\n");
-                    app.setStart(DateTimeParser.toLocal(rs.getString("Start")).replace("T", " ").substring(0, 16) + "\n");
+                    app.setStart(
+                            DateTimeParser.toLocal(rs.getString("Start")).replace("T", " ").substring(0, 16) + "\n");
                     app.setEnd(DateTimeParser.toLocal(rs.getString("End")));
-
-                    System.out.print(app.getStart());
-                    return app;
+                    appointments.add(app);
                 }
             }
         } catch (SQLException | ParseException e) {
             return null;
         }
-        return null;
+        return appointments;
     }
 
     /**
@@ -232,29 +230,13 @@ public class AppointmentQuery {
      * @throws SQLException When Querying Database
      */
     public static ArrayList<Appointment> getAppointmentsByWeek() throws SQLException {
-        ArrayList<Appointment> appointments = null;
-        try {
-            appointments = new ArrayList<>();
-            String sql = "Select * From appointments WHERE Start Between Date_sub(curDate(), interval 1 Day) AND Date_add(curdate(), interval 7 Day);";
-            Statement st = JDBC.connection.createStatement();
-            Statement st2 = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery(sql);
+        ArrayList<Appointment> appointments = new ArrayList<>();
+        String sql = "Select a.*, c.Contact_Name From appointments a INNER JOIN contacts c ON a.Contact_ID = c.Contact_ID WHERE Start Between Date_sub(curDate(), interval 1 Day) AND Date_add(curdate(), interval 7 Day);";
+        try (Statement st = JDBC.connection.createStatement();
+                ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 Appointment app = new Appointment();
-                app.setAppointmentId(Integer.parseInt(rs.getString("Appointment_ID")));
-                app.setContactId(rs.getInt("Contact_ID"));
-                app.setTitle(rs.getString("Title"));
-                app.setDescription(rs.getString("Description"));
-                app.setLocation(rs.getString("Location"));
-                app.setType(rs.getString("Type"));
-                app.setStart(DateTimeParser.toLocal(rs.getString("Start")));
-                app.setEnd(DateTimeParser.toLocal(rs.getString("End")));
-                app.setCustomerId(rs.getInt("Customer_ID"));
-                app.setUserId(rs.getInt("User_ID"));
-                ResultSet rs2 = st2.executeQuery("SELECT Contact_Name from contacts WHERE Contact_ID=" + rs.getInt("Contact_ID"));
-                rs2.next();
-                app.setContactName(rs2.getString("Contact_Name"));
-
+                setAppointmentData(app, rs);
                 appointments.add(app);
             }
         } catch (SQLException e) {
@@ -270,29 +252,13 @@ public class AppointmentQuery {
      * @throws SQLException When Querying Database
      */
     public static ArrayList<Appointment> getAppointmentsByMonth() throws SQLException {
-        ArrayList<Appointment> appointments = null;
-        try {
-            appointments = new ArrayList<>();
-            String sql = "Select * From appointments WHERE Start Between Date_sub(curDate(), interval 1 Day) AND Date_add(curdate(), interval 30 Day);";
-            Statement st = JDBC.connection.createStatement();
-            Statement st2 = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery(sql);
+        ArrayList<Appointment> appointments = new ArrayList<>();
+        String sql = "Select a.*, c.Contact_Name From appointments a INNER JOIN contacts c ON a.Contact_ID = c.Contact_ID WHERE Start Between Date_sub(curDate(), interval 1 Day) AND Date_add(curdate(), interval 30 Day);";
+        try (Statement st = JDBC.connection.createStatement();
+                ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 Appointment app = new Appointment();
-                app.setAppointmentId(Integer.parseInt(rs.getString("Appointment_ID")));
-                app.setContactId(rs.getInt("Contact_ID"));
-                app.setTitle(rs.getString("Title"));
-                app.setDescription(rs.getString("Description"));
-                app.setLocation(rs.getString("Location"));
-                app.setType(rs.getString("Type"));
-                app.setStart(DateTimeParser.toLocal(rs.getString("Start")));
-                app.setEnd(DateTimeParser.toLocal(rs.getString("End")));
-                app.setCustomerId(rs.getInt("Customer_ID"));
-                app.setUserId(rs.getInt("User_ID"));
-                ResultSet rs2 = st2.executeQuery("SELECT Contact_Name from contacts WHERE Contact_ID=" + rs.getInt("Contact_ID"));
-                rs2.next();
-                app.setContactName(rs2.getString("Contact_Name"));
-
+                setAppointmentData(app, rs);
                 appointments.add(app);
             }
         } catch (SQLException e) {
@@ -327,7 +293,8 @@ public class AppointmentQuery {
                 app.setEnd(DateTimeParser.toLocal(rs.getString("End")));
                 app.setCustomerId(rs.getInt("Customer_ID"));
                 app.setUserId(rs.getInt("User_ID"));
-                ResultSet rs2 = st2.executeQuery("SELECT Contact_Name from contacts WHERE Contact_ID=" + rs.getInt("Contact_ID"));
+                ResultSet rs2 = st2
+                        .executeQuery("SELECT Contact_Name from contacts WHERE Contact_ID=" + rs.getInt("Contact_ID"));
                 rs2.next();
                 app.setContactName(rs2.getString("Contact_Name"));
                 return app;
@@ -344,8 +311,8 @@ public class AppointmentQuery {
      * @return Unique List of Types
      * @throws SQLException When the Query is Invalid
      */
-    public static ArrayList getAppointmentTypes() throws SQLException {
-        ArrayList typeList = new ArrayList();
+    public static ArrayList<String> getAppointmentTypes() throws SQLException {
+        ArrayList<String> typeList = new ArrayList<>();
         try {
             Statement st = JDBC.connection.createStatement();
             ResultSet rs = st.executeQuery("Select DISTINCT Type FROM appointments");
@@ -367,29 +334,14 @@ public class AppointmentQuery {
      * @throws SQLException When Query is Invalid
      */
     public static ArrayList<Appointment> getAppointmentsByContact(String contactName) throws SQLException {
-        ArrayList<Appointment> appointments = null;
-        try {
-            appointments = new ArrayList<>();
-            String sql = "SELECT * FROM appointments";
-            Statement st = JDBC.connection.createStatement();
-            Statement st2 = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery(sql);
-            while (rs.next()) {
-                Appointment app = new Appointment();
-                app.setAppointmentId(Integer.parseInt(rs.getString("Appointment_ID")));
-                app.setContactId(rs.getInt("Contact_ID"));
-                app.setTitle(rs.getString("Title"));
-                app.setDescription(rs.getString("Description"));
-                app.setLocation(rs.getString("Location"));
-                app.setType(rs.getString("Type"));
-                app.setStart(DateTimeParser.toLocal(rs.getString("Start")));
-                app.setEnd(DateTimeParser.toLocal(rs.getString("End")));
-                app.setCustomerId(rs.getInt("Customer_ID"));
-                app.setUserId(rs.getInt("User_ID"));
-                ResultSet rs2 = st2.executeQuery("SELECT Contact_Name from contacts WHERE Contact_ID=" + rs.getInt("Contact_ID"));
-                rs2.next();
-                app.setContactName(rs2.getString("Contact_Name"));
-                if (app.getContactName() == null ? contactName == null : app.getContactName().equals(contactName)) {
+        ArrayList<Appointment> appointments = new ArrayList<>();
+        String sql = "SELECT a.*, c.Contact_Name FROM appointments a INNER JOIN contacts c ON a.Contact_ID = c.Contact_ID WHERE c.Contact_Name = ?";
+        try (PreparedStatement st = JDBC.connection.prepareStatement(sql)) {
+            st.setString(1, contactName);
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    Appointment app = new Appointment();
+                    setAppointmentData(app, rs);
                     appointments.add(app);
                 }
             }
@@ -404,7 +356,7 @@ public class AppointmentQuery {
      * Month
      *
      * @param month MonthName
-     * @param type String Type to Filter List
+     * @param type  String Type to Filter List
      * @return The Count of a specified type in a given month period
      * @throws SQLException When a Query is Invalid
      */
@@ -412,7 +364,8 @@ public class AppointmentQuery {
         int count = 0;
         try {
             Statement st = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM appointments WHERE Type = '" + type + "' AND monthname(Start) = '" + month + "'");
+            ResultSet rs = st.executeQuery(
+                    "SELECT * FROM appointments WHERE Type = '" + type + "' AND monthname(Start) = '" + month + "'");
             while (rs.next()) {
                 count++;
             }
@@ -421,4 +374,19 @@ public class AppointmentQuery {
         }
         return count;
     }
+
+    private static void setAppointmentData(Appointment app, ResultSet rs) throws SQLException {
+        app.setAppointmentId(rs.getInt("Appointment_ID"));
+        app.setContactId(rs.getInt("Contact_ID"));
+        app.setTitle(rs.getString("Title"));
+        app.setDescription(rs.getString("Description"));
+        app.setLocation(rs.getString("Location"));
+        app.setType(rs.getString("Type"));
+        app.setStart(DateTimeParser.toLocal(rs.getString("Start")));
+        app.setEnd(DateTimeParser.toLocal(rs.getString("End")));
+        app.setCustomerId(rs.getInt("Customer_ID"));
+        app.setUserId(rs.getInt("User_ID"));
+        app.setContactName(rs.getString("Contact_Name"));
+    }
+
 }

@@ -52,8 +52,8 @@ public class FirstLevelDivisionQuery {
      *
      * @return State/Provinces
      */
-    public static ArrayList getDivisionList() {
-        ArrayList divisionList = new ArrayList();
+    public static ArrayList<String> getDivisionList() {
+        ArrayList<String> divisionList = new ArrayList<>();
         try {
             Statement st = JDBC.connection.createStatement();
             ResultSet rs = st.executeQuery("Select Division from first_level_divisions");
@@ -73,17 +73,21 @@ public class FirstLevelDivisionQuery {
      * @param cust the customer object to associated with the Division String
      * @return the String version of the Division_ID
      */
-    public static ArrayList getFilteredList(Customer cust) {
-        ArrayList filteredList = new ArrayList();
+    public static ArrayList<String> getFilteredList(Customer cust) {
+        ArrayList<String> filteredList = new ArrayList<>();
+        String sql1 = "SELECT Country_ID FROM first_level_divisions WHERE Country = ?";
+        String sql2 = "SELECT Division FROM first_level_divisions WHERE Country_ID = ?";
         try {
-            Statement st = JDBC.connection.createStatement();
-            Statement st2 = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT Country_ID FROM first_level_divisions "
-                    + "WHERE Country ='" + cust.getCustomerCountry() + "'");
-            ResultSet rs2 = st2.executeQuery("SELECT Division FROM first_level_divisions "
-                    + "WHERE Country_ID = " + rs.getInt("Country_ID"));
-            while (rs2.next()) {
-                filteredList.add(rs.getString("Division"));
+            PreparedStatement st = JDBC.connection.prepareStatement(sql1);
+            st.setString(1, cust.getCustomerCountry());
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                PreparedStatement st2 = JDBC.connection.prepareStatement(sql2);
+                st2.setInt(1, rs.getInt("Country_ID"));
+                ResultSet rs2 = st2.executeQuery();
+                while (rs2.next()) {
+                    filteredList.add(rs2.getString("Division"));
+                }
             }
         } catch (SQLException e) {
             return filteredList;

@@ -186,7 +186,7 @@ public class UpdateAppointmentController implements Initializable {
             Logger.getLogger(UpdateAppointmentController.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        ArrayList contactNames = getContactNames();
+        ArrayList<String> contactNames = getContactNames();
         for (int i = 0; i < contactNames.size(); i++) {
             appointmentContact.getItems().add(contactNames.get(i));
         }
@@ -606,7 +606,7 @@ public class UpdateAppointmentController implements Initializable {
                     startHour.getItems().addAll("08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21");
                     endHour.getItems().addAll("08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22");
                     break;
-                case "America/Denver", "GMT-06:00":
+                case "America/Denver":
                     startHour.getItems().addAll("06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19");
                     endHour.getItems().addAll("06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20");
                     break;

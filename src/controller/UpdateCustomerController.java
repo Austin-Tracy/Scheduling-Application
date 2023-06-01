@@ -121,7 +121,7 @@ public class UpdateCustomerController implements Initializable {
             }
         });
 
-        ArrayList countryNames = getCountries();
+        ArrayList<String> countryNames = getCountries();
 
         for (int i = 0; i < countryNames.size(); i++) {
             customerCountryCombo.getItems().add(countryNames.get(i));

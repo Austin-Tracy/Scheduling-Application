@@ -13,8 +13,8 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,6 +61,9 @@ public class LoginFormController implements Initializable {
     @FXML
     private Label passwordLabel;
 
+    // Our ResourceBundle which will be loaded based on the system's default locale.
+    private ResourceBundle resourceBundle;
+
     /**
      * Initializes the controller class and determines the system default
      * language to display all text in either French or English
@@ -69,26 +72,20 @@ public class LoginFormController implements Initializable {
      * @param rb
      */
     public void initialize(URL url, ResourceBundle rb) {
-        Locale localeSettings = Locale.getDefault();
-        if (localeSettings.getLanguage() == "fr" || localeSettings.getDisplayLanguage() == "French") {
-            loginFormPreferredLanguage.setText("Votre zone actuelle est : " + zoneId.toString());
-            loginFormUserName.setPromptText("Nom d'utilisateur");
-            loginFormPassword.setPromptText("Mot de passe");
-            usernameLabel.setText("Nom d'utilisateur");
-            passwordLabel.setText("Mot de passe");
-            UserLoginLabel.setText("Formulaire de connexion utilisateur");
-            loginFormLogin.setText("Connexion");
-            isFrench = true;
-        } else if (localeSettings.getLanguage() == "en" || localeSettings.getDisplayLanguage() == "English") {
-            loginFormPreferredLanguage.setText("You're Current Zone is: " + zoneId.toString());
-            loginFormUserName.setPromptText("Username");
-            loginFormPassword.setPromptText("Password");
-            usernameLabel.setText("Username");
-            passwordLabel.setText("Password");
-            UserLoginLabel.setText("User Login Form");
-            loginFormLogin.setText("Log in");
-            isFrench = false;
-        }
+        // Get the system's default locale.
+        Locale locale = Locale.getDefault();
+        // Load the ResourceBundle for this locale.
+        this.resourceBundle = ResourceBundle.getBundle("messages", locale);
+
+        // Set all texts based on the ResourceBundle.
+        loginFormPreferredLanguage
+                .setText(resourceBundle.getString("preferredLanguage.text") + " " + zoneId.toString());
+        loginFormUserName.setPromptText(resourceBundle.getString("username.prompt"));
+        loginFormPassword.setPromptText(resourceBundle.getString("password.prompt"));
+        usernameLabel.setText(resourceBundle.getString("username.label"));
+        passwordLabel.setText(resourceBundle.getString("password.label"));
+        UserLoginLabel.setText(resourceBundle.getString("userLoginForm.label"));
+        loginFormLogin.setText(resourceBundle.getString("login.text"));
     }
 
     /**
@@ -97,19 +94,15 @@ public class LoginFormController implements Initializable {
      * login_activity.txt, logging all successful and failed login attempts
      *
      * @param event onAction Log In Button Event
-     * @throws IOException When an error happens with File Stream or Stage/Scene
-     * redirect
-     * @throws SQLException When the Query is invalid/null
+     * @throws IOException    When an error happens with File Stream or Stage/Scene
+     *                        redirect
+     * @throws SQLException   When the Query is invalid/null
      * @throws ParseException When there is an error parsing simple date format
      */
     @FXML
     void onActionLogin(ActionEvent event) throws IOException, SQLException, ParseException {
         if (loginFormUserName.getText().isEmpty() || loginFormPassword.getText().isEmpty()) {
-            if (isFrench) {
-                loginFormError.setText("Le nom d'utilisateur et le mot de passe sont requis !");
-            } else {
-                loginFormError.setText("UserName and Password are Required!");
-            }
+            loginFormError.setText(resourceBundle.getString("login.error.emptyFields"));
             fileWriter = new FileWriter(file, true);
             fileWriter.write("Login Failed with Null Values at " + java.time.LocalDateTime.now() + "\n");
             fileWriter.close();
@@ -123,14 +116,15 @@ public class LoginFormController implements Initializable {
                 fileWriter.write("Login Succeeded at " + java.time.LocalDateTime.now() + "\n");
                 fileWriter.close();
                 try {
-                    Appointment app;
-                    app = AppointmentQuery.upcomingAppointments();
-                    if (app != null) {
-                        Alert alert = new Alert(Alert.AlertType.WARNING, "Upcoming Appointment!\n" + "Appointment ID: " + app.getAppointmentId() + "\nScheduled DateTime: " + app.getStart());
-                        Optional<ButtonType> result = alert.showAndWait();
+                    ArrayList<Appointment> apps = AppointmentQuery.upcomingAppointments();
+                    if (apps != null && !apps.isEmpty()) {
+                        Appointment app = apps.get(0); // get the first upcoming appointment
+                        Alert alert = new Alert(Alert.AlertType.WARNING, "Upcoming Appointment!\n" + "Appointment ID: "
+                                + app.getAppointmentId() + "\nScheduled DateTime: " + app.getStart());
+                        alert.showAndWait();
                     } else {
                         Alert alert = new Alert(Alert.AlertType.WARNING, "No upcoming Appointments.");
-                        Optional<ButtonType> result = alert.showAndWait();
+                        alert.showAndWait();
                     }
                 } catch (SQLException | ParseException ex) {
                     Logger.getLogger(LandingHubController.class.getName()).log(Level.SEVERE, null, ex);
@@ -141,11 +135,7 @@ public class LoginFormController implements Initializable {
                 stage.setTitle("Scheduling Hub");
                 stage.show();
             } else {
-                if (isFrench) {
-                    loginFormError.setText("Nom d'utilisateur ou mot de passe incorrect, réessayez !");
-                } else {
-                    loginFormError.setText("Incorrect Username or Password, Try Again!");
-                }
+                loginFormError.setText(resourceBundle.getString("login.error.emptyFields"));
                 fileWriter = new FileWriter(file, true);
                 fileWriter.write("Login Failed with Incorrect Credentials at " + java.time.LocalDateTime.now() + "\n");
                 fileWriter.close();

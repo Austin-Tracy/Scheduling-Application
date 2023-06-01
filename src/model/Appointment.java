@@ -58,17 +58,6 @@ public class Appointment {
      * Empty Appointment Class Constructor
      */
     public Appointment() {
-        this.appointmentId = appointmentId;
-        this.title = title;
-        this.description = description;
-        this.location = location;
-        this.type = type;
-        this.start = start;
-        this.end = end;
-        this.customerId = customerId;
-        this.userId = userId;
-        this.contactId = contactId;
-        this.contactName = contactName;
     }
 
     /**

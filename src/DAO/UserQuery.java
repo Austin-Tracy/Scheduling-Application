@@ -27,12 +27,15 @@ public class UserQuery {
      * @throws SQLException When the Query is invalid
      */
     public static int validUser(User user) throws SQLException {
+        String sql = "SELECT * FROM users WHERE User_Name=? AND Password=?";
         try {
-            Statement st = JDBC.connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM users WHERE User_Name='" + user.getUserName() + "' AND Password='" + user.getPassword() + "'");
+            PreparedStatement st = JDBC.connection.prepareStatement(sql);
+            st.setString(1, user.getUserName());
+            st.setString(2, user.getPassword());
+            ResultSet rs = st.executeQuery();
             if (rs.next()) {
                 User usr = new User();
-                int usrId = (Integer.parseInt(rs.getString("User_ID")));
+                int usrId = Integer.parseInt(rs.getString("User_ID"));
                 usr.setUserName(rs.getString("User_Name"));
                 usr.setPassword(rs.getString("Password"));
                 return usrId;

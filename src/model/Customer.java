@@ -22,7 +22,6 @@ public class Customer {
     private String customerPhone;
     private String customerDivision;
     private String customerCountry;
-    private int divisionId;
 
     /**
      * Customer Class Constructor.
@@ -51,13 +50,6 @@ public class Customer {
      * Empty Customer Object Constructor.
      */
     public Customer() {
-        this.customerId = customerId;
-        this.customerName = customerName;
-        this.customerAddress = customerAddress;
-        this.customerPostalCode = customerPostalCode;
-        this.customerPhone = customerPhone;
-        this.customerDivision = customerDivision;
-        this.customerCountry = customerCountry;
     }
 
     /**
