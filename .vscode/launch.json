@@ -11,7 +11,7 @@
             "mainClass": "C:\\Users\\austi\\Documents\\Projects\\Desktop_Scheduling\\scheduling_application\\src\\model\\SchedulingApplication.java",
             "projectName": "scheduling_application_56158ef9",
             "classPaths": [
-                "src/lib/lib"
+                "src/lib/*.jar"
             ]
         }
     ]
