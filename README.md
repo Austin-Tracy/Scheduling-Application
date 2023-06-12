@@ -2,7 +2,8 @@
 This application allows you to manage users, customers, and appointment schedules.
 
 ## Dependencies
-- JavaFX: Graphics and media packages that allow faster development time and create a cross-platform desktop application that works seamlessly across multiple operating systems.
+- JavaFX: Graphics and media packages that allow faster development time and create a cross-platform desktop application.
+
 - JDBC: Java Database Connectivity API was used to connect to a MySQL database instance, increase performance through PreparedStatements, and improve security through SQL query sanitization.
 
 ## Development
